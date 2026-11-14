@@ -1,0 +1,107 @@
+@page "{id:int}"
+@model PledgeDesk.Web.Pages.Creator.ManageModel
+@{
+    ViewData["Title"] = "Manage campaign";
+    var campaign = Model.Campaign!;
+}
+
+<span class="badge bg-secondary">@campaign.Status</span>
+<h1>@campaign.Title</h1>
+<p>@campaign.PledgedAmount.ToString("C") pledged of @campaign.GoalAmount.ToString("C") &middot; Deadline @campaign.DeadlineUtc.ToString("yyyy-MM-dd")</p>
+
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+<div class="mb-4">
+    @if (campaign.Status == "Draft")
+    {
+        <form method="post" asp-page-handler="Activate" class="d-inline">
+            <button type="submit" class="btn btn-success">Activate campaign</button>
+        </form>
+    }
+    @if (campaign.Status == "Funded")
+    {
+        <form method="post" asp-page-handler="Close" class="d-inline">
+            <button type="submit" class="btn btn-primary">Close &amp; collect funds</button>
+        </form>
+    }
+</div>
+
+<h2>Reward tiers</h2>
+@if (campaign.RewardTiers.Count == 0)
+{
+    <p class="text-muted">No reward tiers yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Title</th><th>Minimum pledge</th><th>Stock</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var tier in campaign.RewardTiers)
+            {
+                <tr>
+                    <td>@tier.Title</td>
+                    <td>@tier.MinimumPledge.ToString("C")</td>
+                    <td>@(tier.TotalStock.HasValue ? $"{tier.ClaimedStock}/{tier.TotalStock}" : "Unlimited")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (campaign.Status == "Draft")
+{
+    <h3>Add a reward tier</h3>
+    <form method="post" asp-page-handler="AddRewardTier" class="col-md-6">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div class="mb-3">
+            <label asp-for="RewardTier.Title" class="form-label"></label>
+            <input asp-for="RewardTier.Title" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="RewardTier.Description" class="form-label"></label>
+            <textarea asp-for="RewardTier.Description" class="form-control"></textarea>
+        </div>
+        <div class="mb-3">
+            <label asp-for="RewardTier.MinimumPledge" class="form-label"></label>
+            <input asp-for="RewardTier.MinimumPledge" class="form-control" />
+        </div>
+        <div class="mb-3">
+            <label asp-for="RewardTier.TotalStock" class="form-label">Total stock (leave blank for unlimited)</label>
+            <input asp-for="RewardTier.TotalStock" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-secondary">Add reward tier</button>
+    </form>
+}
+
+@if (Model.Pledges is not null)
+{
+    <h2 class="mt-4">Pledges</h2>
+    @if (Model.Pledges.Items.Count == 0)
+    {
+        <p class="text-muted">No pledges yet.</p>
+    }
+    else
+    {
+        <table class="table">
+            <thead>
+                <tr><th>Amount</th><th>Reward</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var pledge in Model.Pledges.Items)
+                {
+                    <tr>
+                        <td>@pledge.Amount.ToString("C")</td>
+                        <td>@(pledge.RewardTierTitle ?? "-")</td>
+                        <td>@pledge.Status</td>
+                        <td>@pledge.CreatedAtUtc.ToString("yyyy-MM-dd")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+}
