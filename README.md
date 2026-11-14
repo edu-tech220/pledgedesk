@@ -15,6 +15,10 @@ Built as two independent ASP.NET Core 8 services - a Web API microservice with t
 business rules and a Razor Pages frontend that consumes it - to demonstrate a small,
 realistic microservices split rather than a single monolith.
 
+**Stack:** C# / .NET 8 · ASP.NET Core Web API · ASP.NET Core Razor Pages · Entity
+Framework Core · SQL Server (SQLite in tests) · JWT auth (PBKDF2 password hashing) ·
+`BackgroundService` · xUnit · Docker / Docker Compose · GitHub Actions
+
 ## What it solves
 
 Crowdfunding sounds simple until you have to answer:
