@@ -14,6 +14,42 @@ public class PledgeDeskDbContext : DbContext
     public DbSet<RewardTier> RewardTiers => Set<RewardTier>();
     public DbSet<Pledge> Pledges => Set<Pledge>();
 
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        AssignSqliteRowVersions();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(bool acceptAllChangesOnSuccess, CancellationToken cancellationToken = default)
+    {
+        AssignSqliteRowVersions();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    /// <summary>
+    /// SQL Server auto-generates the rowversion column on every insert/update; SQLite
+    /// (used in tests) has no equivalent, so stand in with a random value on each save.
+    /// The EF concurrency check still compares against the ORIGINAL value captured at
+    /// load time, so a stale write is detected exactly like it would be against SQL
+    /// Server's native rowversion.
+    /// </summary>
+    private void AssignSqliteRowVersions()
+    {
+        if (Database.ProviderName != "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            return;
+        }
+
+        foreach (var entry in ChangeTracker.Entries().Where(e => e.State is EntityState.Added or EntityState.Modified))
+        {
+            var property = entry.Metadata.FindProperty("RowVersion");
+            if (property is not null && property.IsConcurrencyToken)
+            {
+                entry.Property("RowVersion").CurrentValue = Guid.NewGuid().ToByteArray();
+            }
+        }
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -72,5 +108,15 @@ public class PledgeDeskDbContext : DbContext
 
             entity.HasIndex(p => new { p.CampaignId, p.Status });
         });
+
+        if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+        {
+            // SQL Server auto-generates rowversion as a store-computed column; SQLite has
+            // no equivalent, so here it is a plain column that AssignSqliteRowVersions
+            // populates before every save (see SaveChangesAsync override below).
+            modelBuilder.Entity<Campaign>().Property(c => c.RowVersion).ValueGeneratedNever();
+            modelBuilder.Entity<RewardTier>().Property(r => r.RowVersion).ValueGeneratedNever();
+            modelBuilder.Entity<Pledge>().Property(p => p.RowVersion).ValueGeneratedNever();
+        }
     }
 }
