@@ -105,6 +105,16 @@ public class CampaignService : ICampaignService
     {
         var campaign = await GetOwnedCampaignAsync(campaignId, creatorId, cancellationToken);
         CampaignStateMachine.Close(campaign);
+
+        var confirmedPledges = await _db.Pledges
+            .Where(p => p.CampaignId == campaignId && p.Status == PledgeStatus.Confirmed)
+            .ToListAsync(cancellationToken);
+
+        foreach (var pledge in confirmedPledges)
+        {
+            pledge.Status = PledgeStatus.Collected;
+        }
+
         await _db.SaveChangesAsync(cancellationToken);
     }
 
