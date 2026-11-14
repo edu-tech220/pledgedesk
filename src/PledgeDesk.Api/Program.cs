@@ -66,6 +66,17 @@ builder.Services.AddScoped<IPledgeService, PledgeService>();
 
 var app = builder.Build();
 
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<PledgeDeskDbContext>();
+    await db.Database.MigrateAsync();
+
+    var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
+    var clock = scope.ServiceProvider.GetRequiredService<IClock>();
+    await DbSeeder.SeedAsync(db, passwordHasher, clock);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
