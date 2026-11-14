@@ -64,7 +64,7 @@ public class PledgeDeskDbContext : DbContext
         {
             entity.Property(c => c.Title).HasMaxLength(200).IsRequired();
             entity.Property(c => c.Category).HasMaxLength(64).IsRequired();
-            entity.Property(c => c.GoalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.GoalAmount).HasConversion<MoneyConverter>();
             entity.Property(c => c.Status).HasConversion<string>().HasMaxLength(32);
 
             entity.HasOne(c => c.Creator)
@@ -78,7 +78,7 @@ public class PledgeDeskDbContext : DbContext
         modelBuilder.Entity<RewardTier>(entity =>
         {
             entity.Property(r => r.Title).HasMaxLength(200).IsRequired();
-            entity.Property(r => r.MinimumPledge).HasColumnType("decimal(18,2)");
+            entity.Property(r => r.MinimumPledge).HasConversion<MoneyConverter>();
 
             entity.HasOne(r => r.Campaign)
                 .WithMany(c => c.RewardTiers)
@@ -88,7 +88,7 @@ public class PledgeDeskDbContext : DbContext
 
         modelBuilder.Entity<Pledge>(entity =>
         {
-            entity.Property(p => p.Amount).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Amount).HasConversion<MoneyConverter>();
             entity.Property(p => p.Status).HasConversion<string>().HasMaxLength(32);
 
             entity.HasOne(p => p.Campaign)
