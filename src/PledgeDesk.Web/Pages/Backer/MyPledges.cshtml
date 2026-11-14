@@ -1,0 +1,32 @@
+@page
+@model PledgeDesk.Web.Pages.Backer.MyPledgesModel
+@{
+    ViewData["Title"] = "My pledges";
+}
+
+<h1>My pledges</h1>
+
+@if (Model.Pledges is null || Model.Pledges.Items.Count == 0)
+{
+    <p class="text-muted">You haven't backed any campaigns yet.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Campaign</th><th>Amount</th><th>Reward</th><th>Status</th><th>Date</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var pledge in Model.Pledges.Items)
+            {
+                <tr>
+                    <td><a asp-page="/Campaigns/Details" asp-route-id="@pledge.CampaignId">@pledge.CampaignTitle</a></td>
+                    <td>@pledge.Amount.ToString("C")</td>
+                    <td>@(pledge.RewardTierTitle ?? "-")</td>
+                    <td>@pledge.Status</td>
+                    <td>@pledge.CreatedAtUtc.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

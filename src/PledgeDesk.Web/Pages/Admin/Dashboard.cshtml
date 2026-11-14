@@ -1,0 +1,54 @@
+@page
+@model PledgeDesk.Web.Pages.Admin.DashboardModel
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<h1>Admin</h1>
+
+<form method="post" asp-page-handler="RunSettlement" class="mb-3">
+    <button type="submit" class="btn btn-warning">Run settlement now</button>
+</form>
+
+@if (!string.IsNullOrEmpty(Model.SettlementResult))
+{
+    <div class="alert alert-info">Settlement result: <code>@Model.SettlementResult</code></div>
+}
+
+<form method="get" class="row row-cols-lg-auto g-2 align-items-center mb-4">
+    <div class="col-12">
+        <select name="Status" class="form-select" onchange="this.form.submit()">
+            <option value="">All statuses</option>
+            <option value="Draft" selected="@(Model.Status == "Draft")">Draft</option>
+            <option value="Active" selected="@(Model.Status == "Active")">Active</option>
+            <option value="Funded" selected="@(Model.Status == "Funded")">Funded</option>
+            <option value="Failed" selected="@(Model.Status == "Failed")">Failed</option>
+            <option value="Closed" selected="@(Model.Status == "Closed")">Closed</option>
+        </select>
+    </div>
+</form>
+
+@if (Model.Campaigns is null || Model.Campaigns.Items.Count == 0)
+{
+    <p class="text-muted">No campaigns found.</p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr><th>Title</th><th>Status</th><th>Pledged</th><th>Goal</th><th>Deadline</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var campaign in Model.Campaigns.Items)
+            {
+                <tr>
+                    <td><a asp-page="/Campaigns/Details" asp-route-id="@campaign.Id">@campaign.Title</a></td>
+                    <td><span class="badge bg-secondary">@campaign.Status</span></td>
+                    <td>@campaign.PledgedAmount.ToString("C")</td>
+                    <td>@campaign.GoalAmount.ToString("C")</td>
+                    <td>@campaign.DeadlineUtc.ToString("yyyy-MM-dd")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
