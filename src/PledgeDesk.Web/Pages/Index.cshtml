@@ -1,10 +1,73 @@
-﻿@page
+@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+    ViewData["Title"] = "Browse campaigns";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<h1>Browse campaigns</h1>
+
+<form method="get" class="row row-cols-lg-auto g-2 align-items-center mb-4">
+    <div class="col-12">
+        <select name="Status" class="form-select" onchange="this.form.submit()">
+            <option value="">All (default)</option>
+            <option value="Active" selected="@(Model.Status == "Active")">Active</option>
+            <option value="Funded" selected="@(Model.Status == "Funded")">Funded</option>
+            <option value="Failed" selected="@(Model.Status == "Failed")">Failed</option>
+            <option value="Closed" selected="@(Model.Status == "Closed")">Closed</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <input type="text" name="Category" value="@Model.Category" class="form-control" placeholder="Category" />
+    </div>
+    <div class="col-12">
+        <button type="submit" class="btn btn-outline-primary">Filter</button>
+    </div>
+</form>
+
+@if (Model.Campaigns is null || Model.Campaigns.Items.Count == 0)
+{
+    <p class="text-muted">No campaigns match your filters yet.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        @foreach (var campaign in Model.Campaigns.Items)
+        {
+            var progress = campaign.GoalAmount > 0
+                ? Math.Min(100, (int)(campaign.PledgedAmount / campaign.GoalAmount * 100))
+                : 0;
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <span class="badge bg-secondary">@campaign.Status</span>
+                        <h5 class="card-title mt-2">
+                            <a asp-page="/Campaigns/Details" asp-route-id="@campaign.Id">@campaign.Title</a>
+                        </h5>
+                        <p class="card-text text-muted">@campaign.Category</p>
+                        <div class="progress mb-2" role="progressbar" aria-valuenow="@progress" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width:@progress%">@progress%</div>
+                        </div>
+                        <p class="card-text">
+                            @campaign.PledgedAmount.ToString("C") pledged of @campaign.GoalAmount.ToString("C")
+                        </p>
+                        <p class="card-text"><small class="text-muted">Deadline: @campaign.DeadlineUtc.ToString("yyyy-MM-dd")</small></p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <nav class="mt-4">
+        <ul class="pagination">
+            @if (Model.PageNumber > 1)
+            {
+                <li class="page-item"><a class="page-link" asp-page="/Index" asp-route-page="@(Model.PageNumber - 1)" asp-route-status="@Model.Status" asp-route-category="@Model.Category">Previous</a></li>
+            }
+            <li class="page-item disabled"><span class="page-link">Page @Model.PageNumber</span></li>
+            @if (Model.PageNumber * Model.Campaigns.PageSize < Model.Campaigns.TotalCount)
+            {
+                <li class="page-item"><a class="page-link" asp-page="/Index" asp-route-page="@(Model.PageNumber + 1)" asp-route-status="@Model.Status" asp-route-category="@Model.Category">Next</a></li>
+            }
+        </ul>
+    </nav>
+}
