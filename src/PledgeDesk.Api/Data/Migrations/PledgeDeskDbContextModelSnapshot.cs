@@ -51,8 +51,8 @@ namespace PledgeDesk.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("GoalAmount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("GoalAmount")
+                        .HasColumnType("bigint");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -90,8 +90,8 @@ namespace PledgeDesk.Api.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("Amount")
+                        .HasColumnType("bigint");
 
                     b.Property<int>("BackerId")
                         .HasColumnType("int");
@@ -148,8 +148,8 @@ namespace PledgeDesk.Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("MinimumPledge")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<long>("MinimumPledge")
+                        .HasColumnType("bigint");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()

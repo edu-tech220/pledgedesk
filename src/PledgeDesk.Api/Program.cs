@@ -46,6 +46,10 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        // Without this, the handler remaps the short "sub" claim to the legacy
+        // ClaimTypes.NameIdentifier URI, so reading JwtRegisteredClaimNames.Sub back
+        // off User.Claims (see ClaimsPrincipalExtensions.GetUserId) would find nothing.
+        options.MapInboundClaims = false;
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

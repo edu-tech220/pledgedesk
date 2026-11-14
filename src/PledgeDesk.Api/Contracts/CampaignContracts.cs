@@ -4,17 +4,17 @@ using PledgeDesk.Api.Domain;
 namespace PledgeDesk.Api.Contracts;
 
 public record CreateCampaignRequest(
-    [property: Required, MaxLength(200)] string Title,
-    [property: MaxLength(4000)] string Description,
-    [property: Required, MaxLength(64)] string Category,
-    [property: Range(typeof(decimal), "0.01", "79228162514264337593543950335")] decimal GoalAmount,
-    [property: Required] DateTime DeadlineUtc);
+    [Required, MaxLength(200)] string Title,
+    [MaxLength(4000)] string Description,
+    [Required, MaxLength(64)] string Category,
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335")] decimal GoalAmount,
+    [Required] DateTime DeadlineUtc);
 
 public record CreateRewardTierRequest(
-    [property: Required, MaxLength(200)] string Title,
-    [property: MaxLength(2000)] string Description,
-    [property: Range(typeof(decimal), "0.01", "79228162514264337593543950335")] decimal MinimumPledge,
-    [property: Range(1, int.MaxValue)] int? TotalStock);
+    [Required, MaxLength(200)] string Title,
+    [MaxLength(2000)] string Description,
+    [Range(typeof(decimal), "0.01", "79228162514264337593543950335")] decimal MinimumPledge,
+    [Range(1, int.MaxValue)] int? TotalStock);
 
 public record RewardTierDto(
     int Id,
