@@ -1,19 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using PledgeDesk.Web.Models;
+using PledgeDesk.Web.Services;
 
 namespace PledgeDesk.Web.Pages;
 
 public class IndexModel : PageModel
 {
-    private readonly ILogger<IndexModel> _logger;
+    private readonly IPledgeDeskApiClient _apiClient;
 
-    public IndexModel(ILogger<IndexModel> logger)
+    public IndexModel(IPledgeDeskApiClient apiClient)
     {
-        _logger = logger;
+        _apiClient = apiClient;
     }
 
-    public void OnGet()
-    {
+    public PagedResult<CampaignSummaryDto>? Campaigns { get; set; }
 
+    [BindProperty(SupportsGet = true)]
+    public string? Status { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    public string? Category { get; set; }
+
+    [BindProperty(SupportsGet = true, Name = "page")]
+    public int PageNumber { get; set; } = 1;
+
+    public async Task OnGetAsync()
+    {
+        Campaigns = await _apiClient.GetCampaignsAsync(Status, Category, PageNumber);
     }
 }

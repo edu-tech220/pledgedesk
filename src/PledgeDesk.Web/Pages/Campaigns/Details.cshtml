@@ -1,0 +1,100 @@
+@page "{id:int}"
+@model PledgeDesk.Web.Pages.Campaigns.DetailsModel
+@{
+    ViewData["Title"] = Model.Campaign?.Title ?? "Campaign";
+    var campaign = Model.Campaign!;
+    var progress = campaign.GoalAmount > 0
+        ? Math.Min(100, (int)(campaign.PledgedAmount / campaign.GoalAmount * 100))
+        : 0;
+}
+
+<span class="badge bg-secondary">@campaign.Status</span>
+<h1>@campaign.Title</h1>
+<p class="text-muted">by @campaign.CreatorDisplayName &middot; @campaign.Category</p>
+
+<div class="progress mb-2" style="height: 1.5rem;">
+    <div class="progress-bar" style="width:@progress%">@progress%</div>
+</div>
+<p>@campaign.PledgedAmount.ToString("C") pledged of @campaign.GoalAmount.ToString("C") &middot; Deadline @campaign.DeadlineUtc.ToString("yyyy-MM-dd")</p>
+
+<p>@campaign.Description</p>
+
+<h2>Reward tiers</h2>
+@if (campaign.RewardTiers.Count == 0)
+{
+    <p class="text-muted">This campaign has no reward tiers - back it with any amount.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
+        @foreach (var tier in campaign.RewardTiers)
+        {
+            <div class="col">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@tier.Title</h5>
+                        <p class="card-text">@tier.Description</p>
+                        <p class="card-text">Minimum pledge: @tier.MinimumPledge.ToString("C")</p>
+                        <p class="card-text">
+                            @if (tier.TotalStock.HasValue)
+                            {
+                                <span>@tier.AvailableStock of @tier.TotalStock left</span>
+                            }
+                            else
+                            {
+                                <span>Unlimited</span>
+                            }
+                        </p>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="alert alert-success">@Model.SuccessMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="alert alert-danger">@Model.ErrorMessage</div>
+}
+
+@if (campaign.Status == "Active")
+{
+    @if (User.IsInRole("Backer"))
+    {
+        <h2>Back this campaign</h2>
+        <form method="post" class="col-md-6">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="mb-3">
+                <label asp-for="Input.Amount" class="form-label">Pledge amount</label>
+                <input asp-for="Input.Amount" class="form-control" />
+                <span asp-validation-for="Input.Amount" class="text-danger"></span>
+            </div>
+            @if (campaign.RewardTiers.Count > 0)
+            {
+                <div class="mb-3">
+                    <label asp-for="Input.RewardTierId" class="form-label">Reward tier (optional)</label>
+                    <select asp-for="Input.RewardTierId" class="form-select">
+                        <option value="">No reward - just support</option>
+                        @foreach (var tier in campaign.RewardTiers)
+                        {
+                            <option value="@tier.Id">@tier.Title (min @tier.MinimumPledge.ToString("C"))</option>
+                        }
+                    </select>
+                </div>
+            }
+            <button type="submit" class="btn btn-primary">Pledge</button>
+        </form>
+    }
+    else if (User.Identity is { IsAuthenticated: true })
+    {
+        <p class="text-muted">Only backer accounts can pledge to campaigns.</p>
+    }
+    else
+    {
+        <p><a asp-page="/Account/Login" asp-route-returnUrl="@Url.Page("/Campaigns/Details", new { id = campaign.Id })">Log in</a> as a backer to pledge to this campaign.</p>
+    }
+}
