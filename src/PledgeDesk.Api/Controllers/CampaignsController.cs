@@ -53,6 +53,30 @@ public class CampaignsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("mine")]
+    [Authorize(Roles = "Creator")]
+    public async Task<ActionResult<PagedResult<CampaignSummaryDto>>> GetMyCampaigns(
+        [FromQuery] int page = 1, [FromQuery] int pageSize = 10, CancellationToken cancellationToken = default)
+    {
+        var creatorId = User.GetUserId();
+
+        var query = _db.Campaigns
+            .AsNoTracking()
+            .Where(c => c.CreatorId == creatorId)
+            .OrderByDescending(c => c.CreatedAtUtc)
+            .Select(c => new CampaignSummaryDto(
+                c.Id,
+                c.Title,
+                c.Category,
+                c.GoalAmount,
+                c.Pledges.Where(p => p.Status != PledgeStatus.Refunded).Sum(p => (decimal?)p.Amount) ?? 0m,
+                c.DeadlineUtc,
+                c.Status));
+
+        var result = await query.ToPagedResultAsync(page, pageSize, cancellationToken);
+        return Ok(result);
+    }
+
     [HttpGet("{id:int}")]
     [AllowAnonymous]
     public async Task<ActionResult<CampaignDetailDto>> GetCampaign(int id, CancellationToken cancellationToken)
