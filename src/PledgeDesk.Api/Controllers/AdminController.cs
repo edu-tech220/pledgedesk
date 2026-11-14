@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using PledgeDesk.Api.Contracts;
 using PledgeDesk.Api.Data;
 using PledgeDesk.Api.Domain;
+using PledgeDesk.Api.Services;
 
 namespace PledgeDesk.Api.Controllers;
 
@@ -13,10 +14,19 @@ namespace PledgeDesk.Api.Controllers;
 public class AdminController : ControllerBase
 {
     private readonly PledgeDeskDbContext _db;
+    private readonly ISettlementService _settlementService;
 
-    public AdminController(PledgeDeskDbContext db)
+    public AdminController(PledgeDeskDbContext db, ISettlementService settlementService)
     {
         _db = db;
+        _settlementService = settlementService;
+    }
+
+    [HttpPost("settlement/run")]
+    public async Task<ActionResult<SettlementSummary>> RunSettlement(CancellationToken cancellationToken)
+    {
+        var summary = await _settlementService.RunSettlementAsync(cancellationToken);
+        return Ok(summary);
     }
 
     [HttpGet("campaigns")]

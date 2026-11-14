@@ -63,6 +63,12 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICampaignService, CampaignService>();
 builder.Services.AddScoped<IPledgeService, PledgeService>();
+builder.Services.AddScoped<ISettlementService, SettlementService>();
+
+if (!builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddHostedService<SettlementBackgroundService>();
+}
 
 var app = builder.Build();
 
